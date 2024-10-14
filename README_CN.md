@@ -27,16 +27,17 @@
 
 ## 项目介绍
 
-There are a lot of ways to host a Resolve project server, but each of them has their own set of issues. The official project server requires manual backups, and other options can be complicated for those that don't have access to an IT team. Hopefully this is a more reliable and simpler solution for smaller teams!
+有很多方法可以托管一个Resolve项目服务器，但每种方法都有各自的问题。官方的项目服务器需要手动备份，而其他选项对没有IT团队支持的人来说可能会很复杂。希望这能成为小团队更可靠、更简单的解决方案！
 
 ### 项目功能
-- **Lightweight** - Docker based, so doesn't require a full macOS or Windows machine or VM.
-- **Platform Independent** - can be installed on Windows, Mac, Linux, QNAP, Synology, RPi, really anything that can run Docker.
-- **Compatible with Resolve's existing backup/restore functions** - All backup files use the standard Resolve *.backup file syntax, and can be restored from the Resolve UI
-- **Built-in PGAdmin Server** - PGAdmin is a tool for administering a PostgreSQL Server, and is helpful for diagnosing problems and migrating/updating entire servers
+- **轻量级** -  基于Docker，因此不需要完整的macOS或Windows机器或虚拟机。
+- **跨平台** -  可安装在Windows、Mac、Linux、威联通、群晖、树莓派，几乎任何能够运行Docker的设备上。
+- **兼容 Resolve 的现有备份/还原功能** -  所有备份文件使用标准的Resolve *.backup文件格式，并且可以从Resolve的用户界面进行还原。
+- **内置 PGAdmin 服务器** - PGAdmin是用于管理PostgreSQL服务器的工具，对于诊断问题以及迁移/更新整个服务器非常有帮助。
 
 ## 项目设置
-There are a few things we'll need to edit at the top of the docker-compose.yml file to configure our installation:
+（请从源文件下载docker-compose.yml，并按以下步骤配置）
+我们需要在 docker-compose.yml 文件的顶部进行一些编辑，以配置我们的安装:
 ```yaml
 ---
 version: '3.8'
@@ -61,78 +62,84 @@ x-common:
 ```
 
 ### 数据库
-To configure the server itself, we'll want to configure the environment variables below:
-| Environment Variable  |Meaning|
+要配置服务器本身，我们需要配置以下环境变量：
+
+| 环境变量            | 含义                                                                            |
 |---|---|
-| POSTGRES_DB       | Name of your database. Name it whatever you like. |
-| POSTGRES_USER     | Username you will use to connect to your database. The Resolve default is "postgres"  |
-| POSTGRES_PASSWORD | Password you will use to connect to your database. The Resolve default is "DaVinci"  |
-| TZ                | Your timezone, here is [a list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)|
-| POSTGRES_LOCATION | Location your database will be stored. See [Volume Locations](#volume-locations) |
+| POSTGRES_DB       | 数据库名称。可以随意命名(需要在连接时填写)。                                                       |
+| POSTGRES_USER     | 用于连接数据库的用户名。Resolve默认是"postgres"。                                             |
+| POSTGRES_PASSWORD | 用于连接数据库的密码。Resolve默认是"DaVinci"。                                               |
+| TZ                | 您的时区，这里有[一个列表](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)。 |
+| POSTGRES_LOCATION | 数据库存储的位置。请参见[卷位置](#volume-locations)。                                         |
 
 ### 数据库备份
-To configure the backups, we'll want to configure the variables below:
-| Environment Variable  |Meaning|
+要配置备份，我们需要设置以下变量：
+
+| 环境变量           | 含义                                                                 |
 |---|---|
-| SCHEDULE            | This is a [cron string](https://www.freeformatter.com/cron-expression-generator-quartz.html) for how often backups are created. can be "@daily", "@every 1h", etc |
-| BACKUP_KEEP_DAYS    | Number of daily backups to keep before removal.  |
-| BACKUP_KEEP_WEEKS   | Number of weekly backups to keep before removal.  |
-| BACKUP_KEEP_MONTHS  | Number of monthly backups to keep before removal.  |
-| BACKUP_LOCATION     | Location your backups will be stored. See [Volume Locations](#volume-locations) |
+| SCHEDULE         | 一个[cron字符串](https://www.freeformatter.com/cron-expression-generator-quartz.html)，用于指定备份的创建频率。可以是"@daily"、"@every 1h"等。 |
+| BACKUP_KEEP_DAYS    | 保留的每日备份数量，超过此数量后将删除旧备份。                             |
+| BACKUP_KEEP_WEEKS   | 保留的每周备份数量，超过此数量后将删除旧备份。                             |
+| BACKUP_KEEP_MONTHS  | 保留的每月备份数量，超过此数量后将删除旧备份。                             |
+| BACKUP_LOCATION     | 备份文件存储的位置。请参见[卷位置](#volume-locations)。                   |
 
 ### PGAdmin-数据库图形化网页
-To configure PGAdmin, we'll want to configure the variables below:
-| Environment Variable  |Meaning|
+要配置PGAdmin，我们需要设置以下变量：
+
+| 环境变量               | 含义                                   |
 |---|---|
-| PGADMIN_DEFAULT_EMAIL     | Email used for PGAdmin login. Default is "admin@admin.com"  |
-| PGADMIN_DEFAULT_PASSWORD  | Password used for PGAdmin login. Default is "root"  |
-| PGADMIN_PORT              | String configuring port to expose PGAdmin on. Syntax is "YOUR_PORT:80"  |
+| PGADMIN_DEFAULT_EMAIL    | 用于PGAdmin登录的邮箱。默认是"admin@admin.com"。 |
+| PGADMIN_DEFAULT_PASSWORD | 用于PGAdmin登录的密码。默认是"root"。            |
+| PGADMIN_PORT             | 配置PGAdmin的端口，语法为"对外端口:80"。           |
 
 ### 磁盘位置
-The location of your database and backups depend on what platform you are installing on. You will need the full path to the folder you want them stored in. On a QNAP NAS for example, if I wanted to use a folder called "Backups" inside a shared folder named "Videos" for my backups location, the path would be ```/shares/Videos/Backups/```, and my ```BACKUP_LOCATION``` value would look like this:
+数据库和备份的位置取决于你安装的平台。你需要知道存储它们的文件夹的完整路径。例如，在 威联通 NAS 上，如果我想将备份存储在名为"Videos"的共享文件夹中的"Backups"文件夹中，路径将是```/shares/Videos/Backups/```，那么我的```BACKUP_LOCATION```值将如下所示:
 ```yaml
 BACKUP_LOCATION: &bk-location "/shares/Videos/Backups/:/backups"
 ```
-On Ubuntu, if I wanted to use a folder named "database" in the home directory of the user named "johndoe" for my database location, the path would be ```/home/johndoe/database/```, and my ```POSTGRES_LOCATION``` value would look like this:
+在Ubuntu上，如果我想将数据库存储在名为“database”的文件夹中，该文件夹位于名为“johndoe”的用户的主目录中，路径将是```/home/johndoe/database/```，那么我的```POSTGRES_LOCATION```值将如下所示:
 ```yaml
 POSTGRES_LOCATION: &db-location "johndoe/database/:/var/lib/postgresql/data"
 ```
 
-I recommend putting your database on an SSD, your access speed will be noticeably slower on a spinning drive.
+我建议将数据库存放在SSD上，使用机械硬盘时访问速度会明显变慢。
 
-Once you have configured these settings, save your modified docker-compose.yml file and move on to installation!
+一旦配置好这些设置，保存修改后的`docker-compose.yml`文件，然后继续进行安装！
 
 ## 安装
 
 ### QNAP 威联通安装
-Installing on a QNAP NAS is relatively simple. One note, please  put the database files on an SSD. You will thank me later
-1. If you don't already have it, install Container Station from the QNAP app store.
-2. In Container Station, click "Create", then click "Create Application"
-3. Name your application whatever you like (eg. ResolveServer)
-4. Copy/Paste your modified docker-compose.yml file, hit "Validate YAML" to test it, and if it passes, click "Create"
-5. Container Station will download the files it needs and start the app. Once it's done, you should be able to connect Resolve to the IP address of your QNAP using the database name and credentials
+在 威联通 NAS 上安装相对简单。请注意，务必将数据库文件放在SSD上，你会感谢我的。
 
+1. 如果还没有按照docker，请从威联通应用商店安装Container Station。
+2. 在Container Station中，点击“创建”，然后点击“创建应用程序”。
+3. 给你的应用程序命名，随便取个名字（例如：ResolveServer）。
+4. 复制/粘贴你修改后的`docker-compose.yml`文件，点击“验证YAML”进行测试，如果通过验证，点击“创建”。
+5. Container Station会下载所需的文件并启动应用程序。完成后，你应该能够使用数据库名称和凭据将Resolve连接到 威联通 的IP地址。
 
 ### Synology 群晖安装
-See [this discussion](https://github.com/elliotmatson/Docker-Davinci-Resolve-Project-Server/discussions/15#discussioncomment-4615278)
+请见 [该讨论](https://github.com/elliotmatson/Docker-Davinci-Resolve-Project-Server/discussions/15#discussioncomment-4615278)
+fly6516测试中，待补充。
 
 ### Linux安装
-1. Follow the [Docker installation instructions for your Linux distribution](https://docs.docker.com/engine/install/)
-2. Install [Docker Compose](https://docs.docker.com/compose/install/)
-3. Move your modified docker-compose.yml file to a folder on your Linux machine, then navigate to that folder in the terminal.
-4. Run:
-   ```docker-compose up -d```
-5. Docker-compose will download the files it needs and start the app. Once it's done, you should be able to connect Resolve to the IP address of your Linux Server instance using the database name and credentials
-
+1. 按照你Linux发行版的[Docker安装说明](https://docs.docker.com/engine/install/)进行安装。
+2. 安装[Docker Compose](https://docs.docker.com/compose/install/)。
+3. 将你修改后的`docker-compose.yml`文件移动到Linux机器上的一个文件夹中，然后在终端中导航到该文件夹。
+4. 运行：
+   ```bash
+   docker-compose up -d
+   ```
+5. Docker Compose将下载所需的文件并启动应用程序。完成后，你应该能够使用数据库名称和凭据将Resolve连接到你的Linux服务器实例的IP地址。
 
 ## 使用不同的Postgres数据库版本
-Generally, Resolve is not very tolerant of mismatched PostgreSQL versions. Resolve 18 uses PostgreSQL 13, which is what this repository now defaults to. Resolve 17 and below use PostgreSQL 9.5. Unfortunately the major release 9.5 is EOL, and 9.5.4 in particular has a lot of vulnerabilities that make it insecure.
-Since most people are still using the default Resolve credentials for their server, security generally isn't the biggest concern, but if you are trying to secure your project server with an older version of Resolve, you will want to move to a supported version of PostgreSQL.
+通常情况下，Resolve对不匹配的PostgreSQL版本的容忍度较低。Resolve 18使用PostgreSQL 13，而这个仓库现在默认使用这个版本。Resolve 17及以下版本使用PostgreSQL 9.5。不幸的是，主要版本9.5已达到生命周期结束（EOL），特别是9.5.4版本存在许多漏洞，使其不安全。
 
-Resolve 17 and below still use a legacy feature that has been removed in PostgreSQL 12, so the latest major version that is useable is 11, which will be maintained until November 9, 2023.
+由于大多数人仍然使用默认的Resolve凭据来访问他们的服务器，因此安全性通常不是最主要的担忧。但如果你尝试用旧版Resolve保护项目服务器，建议升级到受支持的PostgreSQL版本。
+
+Resolve 17及以下版本仍然使用已在PostgreSQL 12中移除的遗留功能，因此可以使用的最新主要版本是11，该版本将维持支持直到2023年11月9日。
 
 ### 设置一个PostgreSQL 9.5 或 11 版本的项目服务器
-To setup a PostgreSQL 9.5 or 11 server instead of 13, there are 2 lines that need to be changed in docker_compose.yml:
+要设置PostgreSQL 9.5或11 服务器，而不是13，有两行需要在docker_compose.yml中更改：
 ```yaml
 services:
   postgres:
@@ -143,7 +150,7 @@ services:
     ...
 ...
 ```
-to the following:
+更改为以下内容：
 ```yaml
 services:
   postgres:
@@ -155,4 +162,4 @@ services:
 ...
 ```
 ## 鸣谢
--[prodrigestivill](https://github.com/prodrigestivill/) for his [PostgreSQL Backup docker image](https://github.com/prodrigestivill/docker-postgres-backup-local)
+-[prodrigestivill](https://github.com/prodrigestivill/) 及其 [PostgreSQL Backup docker image](https://github.com/prodrigestivill/docker-postgres-backup-local)的贡献
