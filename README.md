@@ -3,6 +3,8 @@
 ![Healthcheck](https://github.com/elliotmatson/Docker-Davinci-Resolve-Project-Server/actions/workflows/stack-healthcheck.yml/badge.svg)
 ![Docker Build](https://github.com/elliotmatson/Docker-Davinci-Resolve-Project-Server/actions/workflows/docker.yml/badge.svg)
 
+**English** | [中文](https://github.com/fly6516/Docker-Davinci-Resolve-Project-Server/blob/52e3bb81de9b2f814b51523c8ea1e290d955f990/README%20CN.md)
+
 Simple Resolve project server with automatic backups
 
 ## Table of Contents
